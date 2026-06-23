@@ -8,9 +8,13 @@ digest email.
 ## Layout
 
 ```
+lib/
+  blog-digest-core.js   # platform-agnostic digest logic (built-in fetch, no deps)
+api/
+  blog-digest.js        # Vercel adapter — GET /api/blog-digest (portable host)
 blog.functions/
-  blog-digest.js     # the serverless function
-  serverless.json    # design-manager serverless config
+  blog-digest.js        # HubSpot serverless variant (requires Content Hub Enterprise)
+  serverless.json       # design-manager serverless config
 vendoo_blog_digest_braze_v2.html   # REFERENCE ONLY — Braze template (do not deploy)
 ```
 
@@ -66,6 +70,52 @@ hs secrets add DIGEST_KEY                 # any long random shared secret
 # 6. Test (returns last month's posts as { count, posts })
 curl "https://blog.vendoo.co/_hcms/api/blog-digest?key=<DIGEST_KEY>&portalid=8731369"
 ```
+
+## Alternative deploy: Vercel (no Content Hub Enterprise)
+
+Since account `8731369` cannot host HubSpot serverless functions, the same
+logic also ships as a portable Vercel function: `api/blog-digest.js` (the
+adapter) over `lib/blog-digest-core.js` (the shared logic). It uses only the
+built-in `fetch`, so there are no dependencies. The `blog.functions/` copy
+stays as a reference for if the account ever moves to Content Hub Enterprise.
+
+This still needs a **HubSpot private app token** with blog/CMS content read
+scope — a *Private Apps* credential (Settings → Integrations → Private Apps),
+which is a different permission than Account & Billing, and is **not** a
+personal access key. Set it, plus the shared secret, as Vercel env vars (never
+committed):
+
+```bash
+# 1. Deploy with the Vercel CLI (or import the repo in the Vercel dashboard —
+#    it auto-detects the api/ function with zero config).
+npm i -g vercel
+vercel                                                # link + first deploy
+
+# 2. Add the two secrets as Production env vars (prompted; never committed).
+vercel env add PRIVATE_APP_ACCESS_TOKEN production    # HubSpot private app token, blog/CMS read scope
+vercel env add DIGEST_KEY production                  # any long random shared secret
+
+# 3. Promote to production.
+vercel --prod
+
+# 4. Endpoint (no portalid — the private app token sets the account):
+#    https://<your-project>.vercel.app/api/blog-digest?key=<DIGEST_KEY>
+
+# 5. Test (returns last month's posts as { count, posts }).
+curl "https://<your-project>.vercel.app/api/blog-digest?key=<DIGEST_KEY>"
+```
+
+Then point the Braze Connected Content block at the new URL (dropping
+`&portalid=...`); the JSON contract is identical, so nothing else in the
+template changes. Moving to Cloudflare Workers, Netlify, or AWS Lambda instead
+is a thin adapter over the same `lib/blog-digest-core.js`.
+
+**Why not the public RSS feed?** `blog.vendoo.co/rss.xml` needs no token, but it
+is capped at 10 items (~13 days) and ignores a larger `?limit=`, so it cannot
+cover a full prior month for a 1st-of-month digest. Complete coverage requires
+the authenticated API (which paginates with a date filter). If a private app
+token is truly unobtainable, the no-auth fallback is scraping the public
+paginated blog listing — complete but brittle, and not implemented here.
 
 ## Notes / things to verify against the live API
 

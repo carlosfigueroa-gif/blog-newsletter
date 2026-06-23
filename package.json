@@ -1,0 +1,9 @@
+{
+  "name": "vendoo-blog-digest",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serverless endpoint returning the previous calendar month's Vendoo blog posts as JSON for the Braze monthly digest email.",
+  "engines": {
+    "node": ">=18"
+  }
+}
