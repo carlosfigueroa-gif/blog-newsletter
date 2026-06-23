@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 /**
  * Vendoo blog digest endpoint (HubSpot serverless function)
  * -----------------------------------------------------------------
@@ -55,29 +53,43 @@ exports.main = async (context, sendResponse) => {
     let after;
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const params = {
+      const params = new URLSearchParams({
         state: 'PUBLISHED',
         sort: '-publishDate',
-        limit: 100,
-        publishDate__gte: prevMonthStart, // ms epoch
+        limit: '100',
+        publishDate__gte: String(prevMonthStart), // ms epoch
         // Best-effort field trim (ignored gracefully if unsupported on list):
         property: 'name,url,postSummary,metaDescription,featuredImage,publishDate'
-      };
-      if (after) params.after = after;
-
-      const resp = await axios.get(HUBSPOT_API, {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-        timeout: 8000
       });
+      if (after) params.set('after', after);
 
-      const results = (resp.data && resp.data.results) || [];
+      // nodejs18.x provides a global fetch, so there is no axios dependency to
+      // bundle. fetch has no native timeout, so abort after 8s to preserve the
+      // previous axios timeout behavior.
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      let data;
+      try {
+        const resp = await fetch(`${HUBSPOT_API}?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal
+        });
+        // fetch, unlike axios, does not reject on HTTP error status. Throw here
+        // so a non-2xx (e.g. 403 from a missing CMS content read scope) lands in
+        // the catch below and returns 500 fetch_failed, as before.
+        if (!resp.ok) throw new Error(`HubSpot API responded ${resp.status}`);
+        data = await resp.json();
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      const results = (data && data.results) || [];
       for (const p of results) {
         const ts = Date.parse(p.publishDate);
         if (ts >= prevMonthStart && ts < currentMonthStart) collected.push(p);
       }
 
-      after = resp.data && resp.data.paging && resp.data.paging.next && resp.data.paging.next.after;
+      after = data && data.paging && data.paging.next && data.paging.next.after;
       if (!after || results.length === 0) break; // no more pages
     }
 

@@ -67,7 +67,7 @@ curl "https://blog.vendoo.co/_hcms/api/blog-digest?key=<DIGEST_KEY>&portalid=873
   re-sorts newest-first in code as a backstop.
 - **403:** if the list call returns 403, add the CMS/blog content read scope to
   the private app and regenerate the token.
-- **`axios` dependency:** `blog-digest.js` requires `axios`. If the serverless
-  runtime does not bundle it, the function will fail to load — switch to the
-  built-in global `fetch` (available on the `nodejs18.x` runtime) with the same
-  logic. Verify on the first deploy.
+- **HTTP client:** `blog-digest.js` uses the runtime's built-in global `fetch`
+  (available on `nodejs18.x`), so there is no npm dependency to bundle. Non-2xx
+  responses (e.g. a 403 from a missing CMS/blog content read scope) are thrown
+  and surface as a 500 `fetch_failed` with the status in `detail`.
