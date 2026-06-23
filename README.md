@@ -30,6 +30,18 @@ Braze template reads them directly:
 
 ## Deploy (HubSpot CLI, design-manager serverless format)
 
+> **Prerequisite — Content Hub Enterprise.** CMS serverless functions are a
+> HubSpot Content Hub (CMS Hub) **Enterprise**-only feature. On 2026-06-23 an
+> `hs cms upload` to account `8731369` was rejected with *"This account or user
+> does not have access to serverless functions"*, so the steps below cannot
+> succeed on that account as-is. Before deploying, have a HubSpot admin confirm
+> the account is on Content Hub Enterprise **and** that the deploying user has
+> access — the error names both the account tier and the user as possible
+> causes, so an admin's personal access key may succeed where a non-admin's
+> does not. If Enterprise is unavailable, host the endpoint on another
+> serverless platform (the function uses only the built-in `fetch`, so it is
+> portable) and update the Braze template's endpoint URL accordingly.
+
 These steps require interactive prompts (auth + secrets) and your HubSpot
 credentials, so run them from a terminal where you can type the values in.
 Secrets are entered **only** via `hs secrets add` — never hardcoded or printed.
