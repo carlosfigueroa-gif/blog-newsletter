@@ -1,0 +1,11 @@
+{
+  "runtime": "nodejs18.x",
+  "version": "1.0",
+  "secrets": ["PRIVATE_APP_ACCESS_TOKEN", "DIGEST_KEY"],
+  "endpoints": {
+    "blog-digest": {
+      "method": "GET",
+      "file": "blog-digest.js"
+    }
+  }
+}

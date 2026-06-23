@@ -1,0 +1,9 @@
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# HubSpot CLI auth/config (must never be committed)
+hubspot.config.yml
