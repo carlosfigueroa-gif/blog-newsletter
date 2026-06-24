@@ -79,10 +79,14 @@ adapter) over `lib/blog-digest-core.js` (the shared logic). It uses only the
 built-in `fetch`, so there are no dependencies. The `blog.functions/` copy
 stays as a reference for if the account ever moves to Content Hub Enterprise.
 
-This still needs a **HubSpot private app token** with blog/CMS content read
-scope — a *Private Apps* credential (Settings → Integrations → Private Apps),
-which is a different permission than Account & Billing, and is **not** a
-personal access key. Set it, plus the shared secret, as Vercel env vars (never
+This needs a **HubSpot Service Key** (Settings → Integrations → Service Keys),
+scoped to **read-only CMS/blog content**. Service Keys are HubSpot's
+purpose-built credential for data-only integrations like this one (public beta
+since Feb 2026, the recommended successor to the older "legacy private app").
+Both authenticate identically as `Authorization: Bearer <key>`, so a legacy
+private app token also works unchanged. Creating a Service Key is a separate
+permission than Account & Billing, and a key can only be granted scopes its
+creator already has. Set it, plus the shared secret, as Vercel env vars (never
 committed):
 
 ```bash
@@ -92,13 +96,13 @@ npm i -g vercel
 vercel                                                # link + first deploy
 
 # 2. Add the two secrets as Production env vars (prompted; never committed).
-vercel env add PRIVATE_APP_ACCESS_TOKEN production    # HubSpot private app token, blog/CMS read scope
+vercel env add HUBSPOT_TOKEN production               # HubSpot Service Key, read-only CMS/blog scope
 vercel env add DIGEST_KEY production                  # any long random shared secret
 
 # 3. Promote to production.
 vercel --prod
 
-# 4. Endpoint (no portalid — the private app token sets the account):
+# 4. Endpoint (no portalid — the credential sets the account):
 #    https://<your-project>.vercel.app/api/blog-digest?key=<DIGEST_KEY>
 
 # 5. Test (returns last month's posts as { count, posts }).
