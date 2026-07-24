@@ -1,22 +1,21 @@
 <!--
   VENDOO BLOG DIGEST — Braze email module (v2)
   -------------------------------------------------------------------
-  Pulls the PREVIOUS month's published posts from the HubSpot serverless
-  endpoint and renders one card per post. Paste this where the post cards
+  Pulls the PREVIOUS month's published posts from the Vendoo blog digest
+  endpoint (Vercel) and renders one card per post. Paste this where the post cards
   go in your Braze email body.
 
   BEFORE SENDING:
-  1. Replace YOUR_DIGEST_KEY below with the DIGEST_KEY secret you set on
-     the HubSpot function.
-  2. Confirm the endpoint URL host matches where the function is deployed
-     (your HubSpot CMS domain), and the portalid is correct.
+  1. Replace YOUR_DIGEST_KEY below with the DIGEST_KEY value you set in
+     Vercel.
+  2. Confirm the endpoint URL host matches your Vercel deployment.
   3. Send yourself a test to confirm posts, ordering, and styling.
 
-  The HubSpot token is NOT here — it lives server-side in the function.
+  The HubSpot token is NOT here — it lives server-side as a Vercel env var.
 -->
 
 {% connected_content
-   https://blog.vendoo.co/_hcms/api/blog-digest?key=YOUR_DIGEST_KEY&portalid=8731369
+   https://blog-newsletter-flame.vercel.app/api/blog-digest?key=YOUR_DIGEST_KEY
    :save feed
 %}
 
