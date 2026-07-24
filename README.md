@@ -15,7 +15,7 @@ api/
 blog.functions/
   blog-digest.js        # HubSpot serverless variant (requires Content Hub Enterprise)
   serverless.json       # design-manager serverless config
-vendoo_blog_digest_braze_v2.html   # REFERENCE ONLY — Braze template (do not deploy)
+vendoo_blog_digest_braze_v2.html   # full Braze email: Connected Content + cards + footer (paste into Braze)
 ```
 
 ## JSON contract
